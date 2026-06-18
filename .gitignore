@@ -1,0 +1,6 @@
+# Cargo build output (root virtual workspace + any stray nested target/)
+/target
+
+# Editor / OS noise
+.DS_Store
+*.swp
