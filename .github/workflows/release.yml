@@ -72,7 +72,7 @@ jobs:
       - name: Assemble release directory
         run: |
           TAG='${{ github.ref_name }}'
-          RELEASE_DIR="isdb-hub-${TAG}-linux-${{ matrix.arch }}"
+          RELEASE_DIR="ferrite-${TAG}-linux-${{ matrix.arch }}"
           mkdir -p "$RELEASE_DIR"
 
           cp target/release/dvb-rs                 "$RELEASE_DIR/dvb-rs"
@@ -94,17 +94,17 @@ jobs:
       - name: Package
         run: |
           TAG='${{ github.ref_name }}'
-          RELEASE_DIR="isdb-hub-${TAG}-linux-${{ matrix.arch }}"
+          RELEASE_DIR="ferrite-${TAG}-linux-${{ matrix.arch }}"
           tar czf "${RELEASE_DIR}.tar.gz" "$RELEASE_DIR"
           sha256sum "${RELEASE_DIR}.tar.gz" > "${RELEASE_DIR}.tar.gz.sha256"
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: isdb-hub-${{ github.ref_name }}-linux-${{ matrix.arch }}
+          name: ferrite-${{ github.ref_name }}-linux-${{ matrix.arch }}
           path: |
-            isdb-hub-${{ github.ref_name }}-linux-${{ matrix.arch }}.tar.gz
-            isdb-hub-${{ github.ref_name }}-linux-${{ matrix.arch }}.tar.gz.sha256
+            ferrite-${{ github.ref_name }}-linux-${{ matrix.arch }}.tar.gz
+            ferrite-${{ github.ref_name }}-linux-${{ matrix.arch }}.tar.gz.sha256
           if-no-files-found: error
 
   release:
@@ -117,7 +117,7 @@ jobs:
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
-          pattern: isdb-hub-${{ github.ref_name }}-linux-*
+          pattern: ferrite-${{ github.ref_name }}-linux-*
           merge-multiple: true
           path: artifacts
 
@@ -126,7 +126,7 @@ jobs:
         with:
           name: ${{ github.ref_name }}
           body: |
-            ## isdb-hub ${{ github.ref_name }}
+            ## ferrite ${{ github.ref_name }}
 
             **ISDB-T self-hosted TV stack** — tuner (dvb-rs) + descrambler (b25-rs) + orchestrator + web UI (isdb-hub).
 
@@ -135,13 +135,13 @@ jobs:
 
             | File | Arch |
             |------|------|
-            | `isdb-hub-${{ github.ref_name }}-linux-amd64.tar.gz` | x86_64 |
-            | `isdb-hub-${{ github.ref_name }}-linux-arm64.tar.gz` | aarch64 (Raspberry Pi 4/5, etc.) |
+            | `ferrite-${{ github.ref_name }}-linux-amd64.tar.gz` | x86_64 |
+            | `ferrite-${{ github.ref_name }}-linux-arm64.tar.gz` | aarch64 (Raspberry Pi 4/5, etc.) |
 
             ### install
             ```bash
-            curl -L "https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/isdb-hub-${{ github.ref_name }}-linux-amd64.tar.gz" | tar xz
-            cd isdb-hub-${{ github.ref_name }}-linux-amd64
+            curl -L "https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/ferrite-${{ github.ref_name }}-linux-amd64.tar.gz" | tar xz
+            cd ferrite-${{ github.ref_name }}-linux-amd64
             sudo cp isdb-hub dvb-rs b25-rs /usr/local/bin/
             sudo mkdir -p /etc/isdbd && sudo cp configs/* /etc/isdbd/
             sudo cp isdbd.service /etc/systemd/system/

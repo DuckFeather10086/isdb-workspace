@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# bootstrap.sh — set up / build the isdb-workspace stack.
+# bootstrap.sh — set up / build the ferrite stack.
 #
 #   ./bootstrap.sh           # ensure submodules, then build everything
 #   ./bootstrap.sh init      # only sync + checkout submodules

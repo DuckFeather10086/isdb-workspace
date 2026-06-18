@@ -1,4 +1,4 @@
-# isdb-workspace
+# ferrite
 
 > Self-hosted **ISDB-T** TV stack — tune, descramble, record, and stream
 > live to your LAN. One Go orchestrator driving three Rust engines.
@@ -8,7 +8,7 @@ repositories and are wired in as **git submodules**, so a single
 recursive clone yields the entire stack at known-good commits.
 
 ```bash
-git clone --recursive https://github.com/DuckFeather10086/isdb-workspace.git
+git clone --recursive https://github.com/DuckFeather10086/ferrite.git
 # or, if you already cloned without --recursive:
 git submodule update --init --recursive
 ```
@@ -78,8 +78,8 @@ EPG store on a timer.
 
 ```bash
 # 1. Get everything
-git clone --recursive https://github.com/DuckFeather10086/isdb-workspace.git
-cd isdb-workspace
+git clone --recursive https://github.com/DuckFeather10086/ferrite.git
+cd ferrite
 
 # 2. Build the Rust engines + the Go daemon
 ./bootstrap.sh build
@@ -120,12 +120,12 @@ because it carries its own inner workspace (`aribb25` lib + `b25-rs` bin).
 ## Releases
 
 Pre-built tarballs for **linux/amd64** and **linux/arm64** are attached to
-every [GitHub Release](https://github.com/DuckFeather10086/isdb-workspace/releases).
+every [GitHub Release](https://github.com/DuckFeather10086/ferrite/releases).
 
 ```bash
 # Pick your arch
-curl -L "https://github.com/DuckFeather10086/isdb-workspace/releases/download/v1.0.0/isdb-hub-v1.0.0-linux-amd64.tar.gz" | tar xz
-cd isdb-hub-v1.0.0-linux-amd64
+curl -L "https://github.com/DuckFeather10086/ferrite/releases/download/v1.0.0/ferrite-v1.0.0-linux-amd64.tar.gz" | tar xz
+cd ferrite-v1.0.0-linux-amd64
 
 # Install system-wide
 sudo cp isdb-hub dvb-rs b25-rs /usr/local/bin/
@@ -136,7 +136,7 @@ sudo cp isdbd.service /etc/systemd/system/
 Each tarball contains:
 
 ```
-isdb-hub-vX.Y.Z-linux-{arch}/
+ferrite-vX.Y.Z-linux-{arch}/
 ├── isdb-hub              # Go daemon (web UI embedded, static binary)
 ├── dvb-rs               # Rust tuner
 ├── b25-rs                # Rust B25 descrambler
