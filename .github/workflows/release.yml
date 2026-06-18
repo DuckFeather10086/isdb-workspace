@@ -8,21 +8,19 @@ on:
 env:
   CARGO_TERM_COLOR: always
   CARGO_INCREMENTAL: 0
+  CARGO_BUILD_RUSTFLAGS: '-C strip=symbols'
 
 jobs:
   build:
     name: build (${{ matrix.arch }})
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.arch == 'amd64' && 'ubuntu-latest' || 'ubuntu-24.04-arm' }}
     strategy:
       matrix:
         arch: [amd64, arm64]
     env:
-      # Go
       CGO_ENABLED: 0
       GOOS: linux
       GOARCH: ${{ matrix.arch == 'amd64' && 'amd64' || 'arm64' }}
-      # Cargo / linker
-      CARGO_BUILD_RUSTFLAGS: '-C strip=symbols'
     steps:
       - name: Checkout (with submodules)
         uses: actions/checkout@v4
@@ -34,23 +32,7 @@ jobs:
           set -eux
           sudo apt-get update -qq
           sudo apt-get install -y --no-install-recommends \
-            libclang-dev pkg-config
-
-          if [ '${{ matrix.arch }}' = 'arm64' ]; then
-            # Cross-compilation toolchain + sysroot
-            sudo apt-get install -y --no-install-recommends \
-              gcc-aarch64-linux-gnu \
-              libc6-dev-arm64-cross
-            # foreign libpcsclite for b25 cross-link
-            sudo dpkg --add-architecture arm64
-            sudo apt-get update -qq
-            sudo apt-get install -y --no-install-recommends \
-              libpcsclite-dev:arm64
-          else
-            # Native b25 dep
-            sudo apt-get install -y --no-install-recommends \
-              libpcsclite-dev
-          fi
+            libclang-dev libpcsclite-dev pkg-config
 
       - name: Setup Go
         uses: actions/setup-go@v5
@@ -61,8 +43,6 @@ jobs:
 
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: ${{ matrix.arch == 'arm64' && 'aarch64-unknown-linux-gnu' || 'x86_64-unknown-linux-gnu' }}
 
       - name: Cache Cargo
         uses: actions/cache@v4
@@ -72,39 +52,16 @@ jobs:
             ~/.cargo/git
             target
             libaribb25-rs/target
-          key: cargo-${{ runner.os }}-${{ matrix.arch }}-${{ hashFiles('Cargo.lock', 'dvbr/Cargo.toml', 'arib-b24-rs/Cargo.toml', 'libaribb25-rs/Cargo.toml', 'libaribb25-rs/aribb25/Cargo.toml', 'libaribb25-rs/b25/Cargo.toml') }}
-          restore-keys: cargo-${{ runner.os }}-${{ matrix.arch }}-
+          key: cargo-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('Cargo.lock', 'dvbr/Cargo.toml', 'arib-b24-rs/Cargo.toml', 'libaribb25-rs/Cargo.toml', 'libaribb25-rs/aribb25/Cargo.toml', 'libaribb25-rs/b25/Cargo.toml') }}
+          restore-keys: cargo-${{ runner.os }}-${{ runner.arch }}-
 
-      - name: 'Build dvbr (root workspace: dvbr + arib-b24)'
-        env:
-          CC_aarch64_unknown_linux_gnu: aarch64-linux-gnu-gcc
-          CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: aarch64-linux-gnu-gcc
-        run: |
-          if [ '${{ matrix.arch }}' = 'arm64' ]; then
-            cargo build --release --target aarch64-unknown-linux-gnu
-          else
-            cargo build --release --target x86_64-unknown-linux-gnu
-          fi
+      - name: Build dvbr (root workspace)
+        run: cargo build --release
 
-      - name: 'Build b25 (inner workspace: libaribb25-rs)'
-        env:
-          CC_aarch64_unknown_linux_gnu: aarch64-linux-gnu-gcc
-          CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: aarch64-linux-gnu-gcc
-          PCSC_LIB_DIR: ${{ matrix.arch == 'arm64' && '/usr/lib/aarch64-linux-gnu' || '' }}
-        run: |
-          if [ '${{ matrix.arch }}' = 'arm64' ]; then
-            cargo build --release \
-              --manifest-path libaribb25-rs/Cargo.toml \
-              --target aarch64-unknown-linux-gnu
-          else
-            cargo build --release \
-              --manifest-path libaribb25-rs/Cargo.toml \
-              --target x86_64-unknown-linux-gnu
-          fi
+      - name: Build b25 (inner workspace)
+        run: cargo build --release --manifest-path libaribb25-rs/Cargo.toml
 
-      - name: Build isdbd (Go daemon, CGO-free)
-        env:
-          GOARCH: ${{ matrix.arch == 'amd64' && 'amd64' || 'arm64' }}
+      - name: Build isdbd (Go daemon)
         run: |
           cd isdbd
           go build \
@@ -115,28 +72,24 @@ jobs:
       - name: Assemble release directory
         run: |
           TAG='${{ github.ref_name }}'
-          RUST_TARGET='${{ matrix.arch == 'arm64' && 'aarch64-unknown-linux-gnu' || 'x86_64-unknown-linux-gnu' }}'
           RELEASE_DIR="isdbd-${TAG}-linux-${{ matrix.arch }}"
           mkdir -p "$RELEASE_DIR"
 
-          # binaries
-          cp "target/${RUST_TARGET}/release/dvbr"  "$RELEASE_DIR/dvbr"
-          cp "libaribb25-rs/target/${RUST_TARGET}/release/b25" "$RELEASE_DIR/b25"
-          cp isdbd "$RELEASE_DIR/isdbd"
-
-          # configs + systemd unit + readme
-          cp -r isdbd/configs "$RELEASE_DIR/"
-          cp isdbd/scripts/isdbd.service "$RELEASE_DIR/"
-          cp README.md "$RELEASE_DIR/"
-
-          # summary (don't run cross-compiled binaries — they won't exec on host)
-          echo "isdbd ${TAG} — linux/${{ matrix.arch }}" > "$RELEASE_DIR/VERSION"
-          echo "  dvbr  $(grep -m1 '^version' dvbr/Cargo.toml | sed 's/.*"\(.*\)"/\1/')" >> "$RELEASE_DIR/VERSION"
-          echo "  b25   $(grep -m1 '^version' libaribb25-rs/b25/Cargo.toml | sed 's/.*"\(.*\)"/\1/')" >> "$RELEASE_DIR/VERSION"
-          echo "  isdbd ${TAG}" >> "$RELEASE_DIR/VERSION"
-          cat "$RELEASE_DIR/VERSION"
+          cp target/release/dvbr                 "$RELEASE_DIR/dvbr"
+          cp libaribb25-rs/target/release/b25    "$RELEASE_DIR/b25"
+          cp isdbd                               "$RELEASE_DIR/isdbd"
+          cp -r isdbd/configs                    "$RELEASE_DIR/"
+          cp isdbd/scripts/isdbd.service         "$RELEASE_DIR/"
+          cp README.md                           "$RELEASE_DIR/"
 
           chmod +x "$RELEASE_DIR/dvbr" "$RELEASE_DIR/b25" "$RELEASE_DIR/isdbd"
+
+          # smoke-test the binaries (native arch — they run on the builder)
+          echo "isdbd ${TAG} — linux/${{ matrix.arch }}" > "$RELEASE_DIR/VERSION"
+          echo "  dvbr  $("$RELEASE_DIR/dvbr" --version 2>&1 | head -1 || echo "(version not printed)")" >> "$RELEASE_DIR/VERSION"
+          echo "  b25   $("$RELEASE_DIR/b25" 2>&1 | head -1 || true)" >> "$RELEASE_DIR/VERSION"
+          echo "  isdbd ${TAG}" >> "$RELEASE_DIR/VERSION"
+          cat "$RELEASE_DIR/VERSION"
 
       - name: Package
         run: |
