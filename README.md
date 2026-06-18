@@ -99,6 +99,43 @@ The root `Cargo.toml` is a virtual workspace over `arib-b24-rs` + `dvbr`
 because it carries its own inner workspace (`aribb25` lib + `b25` bin),
 so it is built with its own `--manifest-path`.
 
+## Releases
+
+Pre-built tarballs for **linux/amd64** and **linux/arm64** are attached to
+every [GitHub Release](https://github.com/DuckFeather10086/isdb-workspace/releases).
+
+```bash
+# pick your arch
+curl -L "https://github.com/DuckFeather10086/isdb-workspace/releases/download/v1.0.0/isdbd-v1.0.0-linux-amd64.tar.gz" | tar xz
+cd isdbd-v1.0.0-linux-amd64
+
+# install system-wide
+sudo cp isdbd dvbr b25 /usr/local/bin/
+sudo mkdir -p /etc/isdbd && sudo cp configs/* /etc/isdbd/
+sudo cp isdbd.service /etc/systemd/system/
+```
+
+Each tarball contains:
+
+```
+isdbd-vX.Y.Z-linux-{arch}/
+├── isdbd              # Go daemon (web UI embedded)
+├── dvbr               # Rust tuner
+├── b25                # Rust B25 descrambler
+├── configs/           # example TOML + channels.json
+├── isdbd.service      # systemd unit
+├── README.md
+└── VERSION
+```
+
+### Cutting a release
+
+1. Bump `version` in `dvbr/Cargo.toml`, `libaribb25-rs/aribb25/Cargo.toml`,
+   and `libaribb25-rs/b25/Cargo.toml` to the desired tag.
+2. Commit: `chore: bump versions for vX.Y.Z`.
+3. Tag: `git tag -a vX.Y.Z -m "Release vX.Y.Z" && git push --tags`.
+4. CI builds both archs and attaches the tarballs to the release.
+
 ## Runtime requirements
 
 - A USB ISDB-T tuner at `/dev/dvb/adapter*/`.
