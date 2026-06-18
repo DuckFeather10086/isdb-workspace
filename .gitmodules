@@ -3,11 +3,6 @@
 	url = https://github.com/DuckFeather10086/libaribb25-rs.git
 	branch = main
 	ignore = untracked
-[submodule "dvbr"]
-	path = dvbr
-	url = https://github.com/DuckFeather10086/dvbr.git
-	branch = fix/sdt-arib-b24
-	ignore = untracked
 [submodule "libaribb24-rs"]
 	path = libaribb24-rs
 	url = https://github.com/DuckFeather10086/libaribb24-rs.git
@@ -17,4 +12,9 @@
 	path = isdb-hub
 	url = https://github.com/DuckFeather10086/isdb-hub.git
 	branch = feat/b25-pipeline-and-webui
+	ignore = untracked
+[submodule "dvb-rs"]
+	path = dvb-rs
+	url = https://github.com/DuckFeather10086/dvb-rs.git
+	branch = fix/sdt-arib-b24
 	ignore = untracked

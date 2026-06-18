@@ -39,7 +39,7 @@ jobs:
         with:
           go-version: '1.25'
           cache: true
-          cache-dependency-path: isdbd/go.sum
+          cache-dependency-path: isdb-hub/go.sum
 
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
@@ -52,8 +52,8 @@ jobs:
             ~/.cargo/git
             target
             libaribb25-rs/target
-          key: cargo-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('Cargo.lock', 'dvbr/Cargo.toml', 'libaribb24-rs/Cargo.toml', 'libaribb25-rs/Cargo.toml', 'libaribb25-rs/aribb25/Cargo.toml', 'libaribb25-rs/b25/Cargo.toml') }}
-          restore-keys: cargo-${{ runner.os }}-${{ runner.arch }}-
+          key: cargo-${{ runner.os }}-${{ runner.arch }}-v3-${{ hashFiles('Cargo.lock', 'dvb-rs/Cargo.toml', 'libaribb24-rs/Cargo.toml', 'libaribb25-rs/Cargo.toml', 'libaribb25-rs/aribb25/Cargo.toml', 'libaribb25-rs/b25/Cargo.toml') }}
+          restore-keys: cargo-${{ runner.os }}-${{ runner.arch }}-v3-
 
       - name: Build dvbr (root workspace)
         run: cargo build --release
@@ -64,7 +64,7 @@ jobs:
       - name: Build isdbd (Go daemon)
         run: |
           go build \
-            -C isdbd \
+            -C isdb-hub \
             -ldflags "-s -w -X main.version=${{ github.ref_name }}" \
             -o ../isdbd-bin \
             ./cmd/isdbd
@@ -72,20 +72,20 @@ jobs:
       - name: Assemble release directory
         run: |
           TAG='${{ github.ref_name }}'
-          RELEASE_DIR="isdbd-${TAG}-linux-${{ matrix.arch }}"
+          RELEASE_DIR="isdb-hub-${TAG}-linux-${{ matrix.arch }}"
           mkdir -p "$RELEASE_DIR"
 
           cp target/release/dvbr                 "$RELEASE_DIR/dvbr"
           cp libaribb25-rs/target/release/b25    "$RELEASE_DIR/b25"
           cp isdbd-bin                           "$RELEASE_DIR/isdbd"
-          cp -r isdbd/configs                    "$RELEASE_DIR/"
-          cp isdbd/scripts/isdbd.service         "$RELEASE_DIR/"
+          cp -r isdb-hub/configs                 "$RELEASE_DIR/"
+          cp isdb-hub/scripts/isdbd.service      "$RELEASE_DIR/"
           cp README.md                           "$RELEASE_DIR/"
 
           chmod +x "$RELEASE_DIR/dvbr" "$RELEASE_DIR/b25" "$RELEASE_DIR/isdbd"
 
           # smoke-test (binaries must exec; b25 exits non-zero when called with no args)
-          echo "isdbd ${TAG} — linux/${{ matrix.arch }}" > "$RELEASE_DIR/VERSION"
+          echo "isdb-hub ${TAG} — linux/${{ matrix.arch }}" > "$RELEASE_DIR/VERSION"
           "$RELEASE_DIR/dvbr" --version 2>&1 | head -1 >> "$RELEASE_DIR/VERSION" || true
           "$RELEASE_DIR/b25" 2>&1 | head -1 >> "$RELEASE_DIR/VERSION" || true
           echo "isdbd ${TAG}" >> "$RELEASE_DIR/VERSION"
@@ -94,17 +94,17 @@ jobs:
       - name: Package
         run: |
           TAG='${{ github.ref_name }}'
-          RELEASE_DIR="isdbd-${TAG}-linux-${{ matrix.arch }}"
+          RELEASE_DIR="isdb-hub-${TAG}-linux-${{ matrix.arch }}"
           tar czf "${RELEASE_DIR}.tar.gz" "$RELEASE_DIR"
           sha256sum "${RELEASE_DIR}.tar.gz" > "${RELEASE_DIR}.tar.gz.sha256"
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: isdbd-${{ github.ref_name }}-linux-${{ matrix.arch }}
+          name: isdb-hub-${{ github.ref_name }}-linux-${{ matrix.arch }}
           path: |
-            isdbd-${{ github.ref_name }}-linux-${{ matrix.arch }}.tar.gz
-            isdbd-${{ github.ref_name }}-linux-${{ matrix.arch }}.tar.gz.sha256
+            isdb-hub-${{ github.ref_name }}-linux-${{ matrix.arch }}.tar.gz
+            isdb-hub-${{ github.ref_name }}-linux-${{ matrix.arch }}.tar.gz.sha256
           if-no-files-found: error
 
   release:
@@ -117,7 +117,7 @@ jobs:
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
-          pattern: isdbd-${{ github.ref_name }}-linux-*
+          pattern: isdb-hub-${{ github.ref_name }}-linux-*
           merge-multiple: true
           path: artifacts
 
@@ -126,22 +126,22 @@ jobs:
         with:
           name: ${{ github.ref_name }}
           body: |
-            ## isdbd ${{ github.ref_name }}
+            ## isdb-hub ${{ github.ref_name }}
 
-            **ISDB-T self-hosted TV stack** — tuner (dvbr) + descrambler (b25) + daemon + web UI (isdbd).
+            **ISDB-T self-hosted TV stack** — tuner (dvbr) + descrambler (b25) + orchestrator + web UI (isdb-hub).
 
             ### per-arch tarballs
             Each contains `isdbd`, `dvbr`, `b25`, example configs, and a systemd unit.
 
             | File | Arch |
             |------|------|
-            | `isdbd-${{ github.ref_name }}-linux-amd64.tar.gz` | x86_64 |
-            | `isdbd-${{ github.ref_name }}-linux-arm64.tar.gz` | aarch64 (Raspberry Pi 4/5, etc.) |
+            | `isdb-hub-${{ github.ref_name }}-linux-amd64.tar.gz` | x86_64 |
+            | `isdb-hub-${{ github.ref_name }}-linux-arm64.tar.gz` | aarch64 (Raspberry Pi 4/5, etc.) |
 
             ### install
             ```bash
-            curl -L "https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/isdbd-${{ github.ref_name }}-linux-amd64.tar.gz" | tar xz
-            cd isdbd-${{ github.ref_name }}-linux-amd64
+            curl -L "https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/isdb-hub-${{ github.ref_name }}-linux-amd64.tar.gz" | tar xz
+            cd isdb-hub-${{ github.ref_name }}-linux-amd64
             sudo cp isdbd dvbr b25 /usr/local/bin/
             sudo mkdir -p /etc/isdbd && sudo cp configs/* /etc/isdbd/
             sudo cp isdbd.service /etc/systemd/system/

@@ -23,19 +23,19 @@ build() {
   if ! have cargo; then echo "error: cargo not found on PATH" >&2; exit 1; fi
   if ! have go;    then echo "error: go not found on PATH"    >&2; exit 1; fi
 
-  step "Building Rust engines: arib-b24 + dvbr (root workspace)"
+  step "Building Rust engines: libaribb24 + dvbr (root workspace)"
   cargo build --release
 
   step "Building Rust engine: b25 (inner workspace)"
   cargo build --release --manifest-path libaribb25-rs/Cargo.toml
 
-  step "Building Go daemon: isdbd"
-  ( cd isdbd && go build ./... )
+  step "Building Go daemon: isdb-hub"
+  ( cd isdb-hub && go build ./... )
 
   step "Done"
-  echo "  dvbr  : $(pwd)/target/release/dvbr"
-  echo "  b25   : $(pwd)/libaribb25-rs/target/release/b25"
-  echo "  isdbd : build with 'cd isdbd && go build -o isdbd ./cmd/isdbd'"
+  echo "  dvbr   : $(pwd)/target/release/dvbr"
+  echo "  b25    : $(pwd)/libaribb25-rs/target/release/b25"
+  echo "  isdbd  : build with 'cd isdb-hub && go build -o isdbd ./cmd/isdbd'"
 }
 
 status() {
