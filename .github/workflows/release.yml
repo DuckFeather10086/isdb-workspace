@@ -63,10 +63,10 @@ jobs:
 
       - name: Build isdbd (Go daemon)
         run: |
-          cd isdbd
           go build \
+            -C isdbd \
             -ldflags "-s -w -X main.version=${{ github.ref_name }}" \
-            -o ../isdbd \
+            -o ../isdbd-bin \
             ./cmd/isdbd
 
       - name: Assemble release directory
@@ -77,18 +77,18 @@ jobs:
 
           cp target/release/dvbr                 "$RELEASE_DIR/dvbr"
           cp libaribb25-rs/target/release/b25    "$RELEASE_DIR/b25"
-          cp isdbd                               "$RELEASE_DIR/isdbd"
+          cp isdbd-bin                           "$RELEASE_DIR/isdbd"
           cp -r isdbd/configs                    "$RELEASE_DIR/"
           cp isdbd/scripts/isdbd.service         "$RELEASE_DIR/"
           cp README.md                           "$RELEASE_DIR/"
 
           chmod +x "$RELEASE_DIR/dvbr" "$RELEASE_DIR/b25" "$RELEASE_DIR/isdbd"
 
-          # smoke-test the binaries (native arch — they run on the builder)
+          # smoke-test (binaries must exec; b25 exits non-zero when called with no args)
           echo "isdbd ${TAG} — linux/${{ matrix.arch }}" > "$RELEASE_DIR/VERSION"
-          echo "  dvbr  $("$RELEASE_DIR/dvbr" --version 2>&1 | head -1 || echo "(version not printed)")" >> "$RELEASE_DIR/VERSION"
-          echo "  b25   $("$RELEASE_DIR/b25" 2>&1 | head -1 || true)" >> "$RELEASE_DIR/VERSION"
-          echo "  isdbd ${TAG}" >> "$RELEASE_DIR/VERSION"
+          "$RELEASE_DIR/dvbr" --version 2>&1 | head -1 >> "$RELEASE_DIR/VERSION" || true
+          "$RELEASE_DIR/b25" 2>&1 | head -1 >> "$RELEASE_DIR/VERSION" || true
+          echo "isdbd ${TAG}" >> "$RELEASE_DIR/VERSION"
           cat "$RELEASE_DIR/VERSION"
 
       - name: Package
