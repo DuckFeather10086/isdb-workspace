@@ -1,8 +1,3 @@
-[submodule "arib-b24-rs"]
-	path = arib-b24-rs
-	url = https://github.com/DuckFeather10086/arib-b24-rs.git
-	branch = main
-	ignore = untracked
 [submodule "libaribb25-rs"]
 	path = libaribb25-rs
 	url = https://github.com/DuckFeather10086/libaribb25-rs.git
@@ -17,4 +12,9 @@
 	path = isdbd
 	url = https://github.com/DuckFeather10086/isdbd.git
 	branch = feat/b25-pipeline-and-webui
+	ignore = untracked
+[submodule "libaribb24-rs"]
+	path = libaribb24-rs
+	url = https://github.com/DuckFeather10086/libaribb24-rs.git
+	branch = main
 	ignore = untracked
