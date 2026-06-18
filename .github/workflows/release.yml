@@ -52,7 +52,7 @@ jobs:
             ~/.cargo/git
             target
             libaribb25-rs/target
-          key: cargo-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('Cargo.lock', 'dvbr/Cargo.toml', 'arib-b24-rs/Cargo.toml', 'libaribb25-rs/Cargo.toml', 'libaribb25-rs/aribb25/Cargo.toml', 'libaribb25-rs/b25/Cargo.toml') }}
+          key: cargo-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('Cargo.lock', 'dvbr/Cargo.toml', 'libaribb24-rs/Cargo.toml', 'libaribb25-rs/Cargo.toml', 'libaribb25-rs/aribb25/Cargo.toml', 'libaribb25-rs/b25/Cargo.toml') }}
           restore-keys: cargo-${{ runner.os }}-${{ runner.arch }}-
 
       - name: Build dvbr (root workspace)
