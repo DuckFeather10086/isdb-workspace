@@ -33,9 +33,9 @@ build() {
   ( cd isdb-hub && go build ./... )
 
   step "Done"
-  echo "  dvbr   : $(pwd)/target/release/dvbr"
-  echo "  b25    : $(pwd)/libaribb25-rs/target/release/b25"
-  echo "  isdbd  : build with 'cd isdb-hub && go build -o isdbd ./cmd/isdbd'"
+  echo "  dvbr   : $(pwd)/target/release/dvb-rs"
+  echo "  b25    : $(pwd)/libaribb25-rs/target/release/b25-rs"
+  echo "  isdbd  : build with 'cd isdb-hub && go build -o isdb-hub ./cmd/isdbd'"
 }
 
 status() {

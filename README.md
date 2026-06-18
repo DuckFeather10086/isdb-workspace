@@ -39,9 +39,9 @@ graph TB
     end
 
     subgraph "Rust engines"
-        DVBR["dvbr<br/>tune · scan · EPG"]
+        DVBR["dvb-rs<br/>tune · scan · EPG"]
         B24["libaribb24<br/>B24 text decode"]
-        B25["b25<br/>B25 descramble"]
+        B25["b25-rs<br/>B25 descramble"]
     end
 
     subgraph "isdb-hub (Go)"
@@ -70,8 +70,8 @@ graph TB
 ```
 
 The hot path per active channel is a two-process pipe —
-`dvbr tune … | b25 -v 0 - -` — broadcast 1→N by `fanout` (slow
-consumers are dropped, never block live playback). `dvbr epg` feeds the
+`dvb-rs tune … | b25-rs -v 0 - -` — broadcast 1→N by `fanout` (slow
+consumers are dropped, never block live playback). `dvb-rs epg` feeds the
 EPG store on a timer.
 
 ## Quickstart
@@ -97,13 +97,13 @@ Open the web UI in a browser (Live / Guide / Schedules / Recordings).
 The two Rust build roots and the Go module build independently:
 
 ```bash
-# Rust: libaribb24 + dvbr share the root virtual workspace
+# Rust: libaribb24 + dvb-rs share the root virtual workspace
 cargo build --release
-#   → target/release/dvbr
+#   → target/release/dvb-rs
 
-# Rust: b25 has its own inner workspace (excluded from the root one)
+# Rust: b25-rs has its own inner workspace (excluded from the root one)
 cargo build --release --manifest-path libaribb25-rs/Cargo.toml
-#   → libaribb25-rs/target/release/b25
+#   → libaribb25-rs/target/release/b25-rs
 
 # Go orchestrator (CGO-free, web UI embedded)
 cd isdb-hub && go build ./...
@@ -114,8 +114,8 @@ cd isdb-hub && go build ./...
 ### Why two Cargo roots?
 
 The root `Cargo.toml` is a virtual workspace over `libaribb24-rs` + `dvb-rs`
-(`dvbr` depends on `libaribb24` by path). `libaribb25-rs` is **excluded**
-because it carries its own inner workspace (`aribb25` lib + `b25` bin).
+(`dvb-rs` depends on `libaribb24` by path). `libaribb25-rs` is **excluded**
+because it carries its own inner workspace (`aribb25` lib + `b25-rs` bin).
 
 ## Releases
 
@@ -128,7 +128,7 @@ curl -L "https://github.com/DuckFeather10086/isdb-workspace/releases/download/v1
 cd isdb-hub-v1.0.0-linux-amd64
 
 # Install system-wide
-sudo cp isdbd dvbr b25 /usr/local/bin/
+sudo cp isdb-hub dvb-rs b25-rs /usr/local/bin/
 sudo mkdir -p /etc/isdbd && sudo cp configs/* /etc/isdbd/
 sudo cp isdbd.service /etc/systemd/system/
 ```
@@ -137,9 +137,9 @@ Each tarball contains:
 
 ```
 isdb-hub-vX.Y.Z-linux-{arch}/
-├── isdbd              # Go daemon (web UI embedded, static binary)
-├── dvbr               # Rust tuner
-├── b25                # Rust B25 descrambler
+├── isdb-hub              # Go daemon (web UI embedded, static binary)
+├── dvb-rs               # Rust tuner
+├── b25-rs                # Rust B25 descrambler
 ├── configs/           # example TOML + channels.json
 ├── isdbd.service      # systemd unit
 ├── README.md
@@ -160,7 +160,7 @@ isdb-hub-vX.Y.Z-linux-{arch}/
 - `ffmpeg` / `ffprobe` on `$PATH` (HLS remux + A/V-skew correction).
 - For scrambled (non-FTA) channels: **`pcscd`** running + a B-CAS card
   reader (polkit rule for the invoking user). FTA-only setups can run
-  without `b25`.
+  without `b25-rs`.
 
 ## Maintainer notes
 
