@@ -8,13 +8,13 @@
 	url = https://github.com/DuckFeather10086/dvbr.git
 	branch = fix/sdt-arib-b24
 	ignore = untracked
-[submodule "isdbd"]
-	path = isdbd
-	url = https://github.com/DuckFeather10086/isdbd.git
-	branch = feat/b25-pipeline-and-webui
-	ignore = untracked
 [submodule "libaribb24-rs"]
 	path = libaribb24-rs
 	url = https://github.com/DuckFeather10086/libaribb24-rs.git
 	branch = main
+	ignore = untracked
+[submodule "isdb-hub"]
+	path = isdb-hub
+	url = https://github.com/DuckFeather10086/isdb-hub.git
+	branch = feat/b25-pipeline-and-webui
 	ignore = untracked
