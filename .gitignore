@@ -1,4 +1,5 @@
-# Cargo build output (root virtual workspace + any stray nested target/)
+# Nothing is built at this level any more — ferrite's Makefile builds into
+# ferrite's own tree, which ferrite ignores. Kept for a stray cargo run here.
 /target
 
 # Editor / OS noise
