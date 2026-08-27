@@ -2,6 +2,9 @@
 #
 # bootstrap.sh — check out the ferrite stack and build it.
 #
+# RETIRED. This repo is a wrapper around one submodule and its pin is no longer
+# moved; clone ferrite directly instead. See README.md.
+#
 #   ./bootstrap.sh           # ensure submodules, then build everything
 #   ./bootstrap.sh init      # only sync + checkout submodules
 #   ./bootstrap.sh build     # only build (assumes submodules present)
@@ -15,6 +18,11 @@ set -euo pipefail
 cd "$(dirname "$0")"
 
 step() { printf '\n\033[1;36m==> %s\033[0m\n' "$*"; }
+note() { printf '\033[1;33m%s\033[0m\n' "$*" >&2; }
+
+note "isdb-workspace is retired — the ferrite pin here is a snapshot, not a release."
+note "  git clone --recursive https://github.com/DuckFeather10086/ferrite.git"
+
 have() { command -v "$1" >/dev/null 2>&1; }
 
 ensure_submodules() {

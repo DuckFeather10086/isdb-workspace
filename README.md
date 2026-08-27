@@ -1,33 +1,33 @@
-# isdb-workspace
+# isdb-workspace — retired
 
-Dev workspace for the **[ferrite](https://github.com/DuckFeather10086/ferrite)**
-ISDB-T self-hosted TV stack.
-
-**ferrite** is the product and the build root: a Go orchestrator with an
-embedded web UI, driving four Rust engines it carries as its own submodules.
-Everything operational is relative to that checkout — its Makefile, the paths
-in `configs/isdbd.toml`, the systemd unit's `WorkingDirectory`, the release
-workflow — so one recursive clone of ferrite is the whole stack:
+Development happens in **[ferrite](https://github.com/DuckFeather10086/ferrite)**.
+Clone that instead — one recursive clone is the whole ISDB-T stack:
 
 ```bash
 git clone --recursive https://github.com/DuckFeather10086/ferrite.git
 cd ferrite && make deps && make build
 ```
 
-This repo is that clone with a name: one submodule, `ferrite`, and a script
-that checks it out recursively and hands the build to ferrite's Makefile.
+## Why this repo is gone
 
-```bash
-git clone --recursive https://github.com/DuckFeather10086/isdb-workspace.git
-cd isdb-workspace && ./bootstrap.sh          # init + build
-./bootstrap.sh status                        # every pin, at both levels
-```
+It was a wrapper: one submodule, `ferrite`, and a script that checked it out
+recursively and handed the build to ferrite's Makefile. It never held code of
+its own.
 
-It used to carry the Rust engines as submodules of its own, beside ferrite's,
-and a cargo workspace to build them in. That was two checkouts and two
-`target/` directories of the same three crates, pinned independently — and only
-ferrite's pin was ever the one that ran. The engines now live in exactly one
-place.
+Everything operational was already relative to the ferrite checkout — its
+Makefile, the paths in `configs/isdbd.toml`, the systemd unit's
+`WorkingDirectory`, the release workflow — so this level added a name and a
+second pin to keep current, and nothing else. Earlier it also carried the Rust
+engines as submodules of its own, beside ferrite's: two checkouts and two
+`target/` directories of the same crates, pinned independently, with only
+ferrite's pin ever the one that ran. Those moved into ferrite; this is the rest
+of the same cleanup.
+
+`bootstrap.sh` still works if you already have this checkout, but the `ferrite`
+pin here is a snapshot from the day the repo was retired, not a release. Move
+to a ferrite clone.
+
+## Where the code lives
 
 | Repo | Role | Lang |
 |------|------|------|
